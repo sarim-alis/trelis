@@ -10,10 +10,22 @@ const api = axios.create({
   }
 });
 
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('accessToken');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+
+    if (error.config?.url === '/auth/me' && error.response?.status === 401) {
+      return Promise.reject(error);
+    }
 
     if (error.response?.status === 401 && error.response?.data?.expired && !originalRequest._retry) {
       originalRequest._retry = true;

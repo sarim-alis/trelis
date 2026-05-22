@@ -9,43 +9,52 @@ export const useAuthStore = create((set) => ({
 
   login: async (email, password) => {
     const response = await api.post('/auth/login', { email, password });
-    set({ user: response.data.user, isAuthenticated: true });
+    const { user, accessToken, refreshToken } = response.data;
     
-    const tokenResponse = await api.get('/auth/me');
-    if (tokenResponse.data.user) {
-      const token = document.cookie.split('; ').find(row => row.startsWith('accessToken='))?.split('=')[1];
-      initSocket(token);
-    }
+    localStorage.setItem('accessToken', accessToken);
+    localStorage.setItem('refreshToken', refreshToken);
+    
+    set({ user, isAuthenticated: true });
+    initSocket(accessToken);
     
     return response.data;
   },
 
   register: async (username, email, password) => {
     const response = await api.post('/auth/register', { username, email, password });
-    set({ user: response.data.user, isAuthenticated: true });
+    const { user, accessToken, refreshToken } = response.data;
     
-    const token = document.cookie.split('; ').find(row => row.startsWith('accessToken='))?.split('=')[1];
-    initSocket(token);
+    localStorage.setItem('accessToken', accessToken);
+    localStorage.setItem('refreshToken', refreshToken);
+    
+    set({ user, isAuthenticated: true });
+    initSocket(accessToken);
     
     return response.data;
   },
 
   logout: async () => {
     await api.post('/auth/logout');
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
     set({ user: null, isAuthenticated: false });
     disconnectSocket();
   },
 
   checkAuth: async () => {
     try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        set({ user: null, isAuthenticated: false, isLoading: false });
+        return;
+      }
+      
       const response = await api.get('/auth/me');
       set({ user: response.data.user, isAuthenticated: true, isLoading: false });
-      
-      const token = document.cookie.split('; ').find(row => row.startsWith('accessToken='))?.split('=')[1];
-      if (token) {
-        initSocket(token);
-      }
+      initSocket(token);
     } catch (error) {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
       set({ user: null, isAuthenticated: false, isLoading: false });
     }
   }

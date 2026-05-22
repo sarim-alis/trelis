@@ -41,7 +41,9 @@ export const register = async (req, res) => {
         id: user._id,
         username: user.username,
         email: user.email
-      }
+      },
+      accessToken,
+      refreshToken
     });
   } catch (error) {
     res.status(500).json({ message: 'Registration failed', error: error.message });
@@ -88,7 +90,9 @@ export const login = async (req, res) => {
         id: user._id,
         username: user.username,
         email: user.email
-      }
+      },
+      accessToken,
+      refreshToken
     });
   } catch (error) {
     res.status(500).json({ message: 'Login failed', error: error.message });
