@@ -107,7 +107,10 @@ export const useBoardStore = create((set, get) => ({
   },
 
   addTask: (task) => {
-    set({ tasks: [...get().tasks, task] });
+    const exists = get().tasks.find(t => t._id === task._id);
+    if (!exists) {
+      set({ tasks: [...get().tasks, task] });
+    }
   },
 
   removeTask: (taskId) => {
@@ -115,6 +118,11 @@ export const useBoardStore = create((set, get) => ({
   },
 
   updateTaskInStore: (task) => {
-    set({ tasks: get().tasks.map(t => t._id === task._id ? task : t) });
+    const exists = get().tasks.find(t => t._id === task._id);
+    if (exists) {
+      set({ tasks: get().tasks.map(t => t._id === task._id ? task : t) });
+    } else {
+      set({ tasks: [...get().tasks, task] });
+    }
   }
 }));
