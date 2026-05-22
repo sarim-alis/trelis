@@ -2,6 +2,10 @@
 
 A full-stack real-time Kanban board application built with React, Node.js, Express, MongoDB, and Socket.IO.
 
+## 🔗 Live Demo
+- **Frontend**: [https://trelis.vercel.app](https://trelis.vercel.app)
+- **Backend API**: [https://trelis-backend-6q6y.onrender.com/](https://trelis-backend-6q6y.onrender.com/)
+
 ## Features
 
 ## Tech Stack
