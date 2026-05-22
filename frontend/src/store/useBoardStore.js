@@ -82,6 +82,12 @@ export const useBoardStore = create((set, get) => ({
     }
   },
 
+  optimisticUpdateTask: (id, data) => {
+    set({
+      tasks: get().tasks.map(t => t._id === id ? { ...t, ...data } : t)
+    });
+  },
+
   deleteTask: async (id) => {
     await api.delete(`/tasks/${id}`);
     set({ tasks: get().tasks.filter(t => t._id !== id) });
@@ -98,6 +104,13 @@ export const useBoardStore = create((set, get) => ({
       console.error('Failed to reorder tasks:', error.response?.data || error.message);
       throw error;
     }
+  },
+
+  optimisticReorderTasks: (tasks) => {
+    set({ tasks: get().tasks.map(t => {
+      const updated = tasks.find(ut => ut.id === t._id);
+      return updated ? { ...t, status: updated.status, order: updated.order } : t;
+    })});
   },
 
   fetchActivities: async (boardId) => {

@@ -15,7 +15,7 @@ import { ArrowLeft, Search, Moon, Sun, Activity } from 'lucide-react';
 export const Board = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { currentBoard, tasks, activities, fetchBoard, fetchTasks, fetchActivities, createTask, updateTask, deleteTask, reorderTasks } = useBoardStore();
+  const { currentBoard, tasks, activities, fetchBoard, fetchTasks, fetchActivities, createTask, updateTask, deleteTask, reorderTasks, optimisticUpdateTask, optimisticReorderTasks } = useBoardStore();
   const { user } = useAuthStore();
   const { isDark, toggleTheme } = useThemeStore();
   const [activeId, setActiveId] = useState(null);
@@ -87,30 +87,31 @@ export const Board = () => {
       return;
     }
 
-    try {
-      if (statusChanged) {
-        await updateTask(active.id, { status: newStatus });
-        await fetchTasks(id);
-      } else {
-        const statusTasks = tasks.filter(t => t.status === newStatus);
-        const oldIndex = statusTasks.findIndex(t => t._id === active.id);
-        const newIndex = statusTasks.findIndex(t => t._id === overId);
+    if (statusChanged) {
+      optimisticUpdateTask(active.id, { status: newStatus });
+      updateTask(active.id, { status: newStatus }).catch((error) => {
+        console.error('Failed to update task:', error);
+        fetchTasks(id);
+      });
+    } else {
+      const statusTasks = tasks.filter(t => t.status === newStatus);
+      const oldIndex = statusTasks.findIndex(t => t._id === active.id);
+      const newIndex = statusTasks.findIndex(t => t._id === overId);
 
-        if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-          const reordered = arrayMove(statusTasks, oldIndex, newIndex);
-          const updatedTasks = reordered.map((task, index) => ({
-            id: task._id,
-            status: newStatus,
-            order: index
-          }));
-          
-          await reorderTasks(id, updatedTasks);
-          await fetchTasks(id);
-        }
+      if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+        const reordered = arrayMove(statusTasks, oldIndex, newIndex);
+        const updatedTasks = reordered.map((task, index) => ({
+          id: task._id,
+          status: newStatus,
+          order: index
+        }));
+        
+        optimisticReorderTasks(updatedTasks);
+        reorderTasks(id, updatedTasks).catch((error) => {
+          console.error('Failed to reorder tasks:', error);
+          fetchTasks(id);
+        });
       }
-    } catch (error) {
-      console.error('Failed to update task position:', error);
-      await fetchTasks(id);
     }
   };
 

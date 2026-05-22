@@ -43,9 +43,6 @@ export const TaskCard = ({ task, onDelete, onEdit }) => {
               {task.description}
             </p>
           )}
-          <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
-            {task.createdBy?.username || 'Unknown'}
-          </p>
         </div>
         <div className="flex items-center gap-1">
           <button
