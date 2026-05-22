@@ -5,6 +5,7 @@ export const TaskModal = ({ isOpen, onClose, onSubmit, task, defaultStatus }) =>
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState(defaultStatus || 'todo');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (task) {
@@ -18,11 +19,18 @@ export const TaskModal = ({ isOpen, onClose, onSubmit, task, defaultStatus }) =>
     }
   }, [task, defaultStatus]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!title.trim()) return;
+    if (!title.trim() || isSubmitting) return;
 
-    onSubmit({ title, description, status });
+    setIsSubmitting(true);
+    try {
+      await onSubmit({ title, description, status });
+    } catch (error) {
+      console.error('Failed to submit:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -77,14 +85,16 @@ export const TaskModal = ({ isOpen, onClose, onSubmit, task, defaultStatus }) =>
         <div className="flex gap-2 pt-2">
           <button
             type="submit"
-            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+            disabled={isSubmitting || !title.trim()}
+            className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-medium transition-colors"
           >
-            {task ? 'Update' : 'Create'}
+            {isSubmitting ? (task ? 'Updating...' : 'Creating...') : (task ? 'Update' : 'Create')}
           </button>
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-lg font-medium transition-colors"
+            disabled={isSubmitting}
+            className="flex-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed text-gray-800 dark:text-gray-200 px-4 py-2 rounded-lg font-medium transition-colors"
           >
             Cancel
           </button>

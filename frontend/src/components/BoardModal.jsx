@@ -4,6 +4,7 @@ import { Modal } from './Modal';
 export const BoardModal = ({ isOpen, onClose, onSubmit, board }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (board) {
@@ -15,12 +16,19 @@ export const BoardModal = ({ isOpen, onClose, onSubmit, board }) => {
     }
   }, [board]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!title.trim()) return;
+    if (!title.trim() || isSubmitting) return;
 
-    onSubmit({ title, description });
-    onClose();
+    setIsSubmitting(true);
+    try {
+      await onSubmit({ title, description });
+      onClose();
+    } catch (error) {
+      console.error('Failed to submit:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -60,14 +68,16 @@ export const BoardModal = ({ isOpen, onClose, onSubmit, board }) => {
         <div className="flex gap-2 pt-2">
           <button
             type="submit"
-            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+            disabled={isSubmitting || !title.trim()}
+            className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-medium transition-colors"
           >
-            {board ? 'Update' : 'Create'}
+            {isSubmitting ? 'Creating...' : (board ? 'Update' : 'Create')}
           </button>
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-lg font-medium transition-colors"
+            disabled={isSubmitting}
+            className="flex-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed text-gray-800 dark:text-gray-200 px-4 py-2 rounded-lg font-medium transition-colors"
           >
             Cancel
           </button>
