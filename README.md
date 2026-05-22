@@ -5,6 +5,7 @@ A full-stack real-time Kanban board application built with React, Node.js, Expre
 ## 🔗 Live Demo
 - **Frontend**: [https://trelis-iota.vercel.app/](https://trelis-iota.vercel.app/)
 - **Backend API**: [https://trelis-backend-6q6y.onrender.com/](https://trelis-backend-6q6y.onrender.com/)
+- **Github**: [https://github.com/sarim-alis/trelis](https://github.com/sarim-alis/trelis)
 
 ## Features
 
