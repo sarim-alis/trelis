@@ -1,6 +1,6 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Trash2, GripVertical } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 
 export const TaskCard = ({ task, onDelete, onEdit }) => {
   const {
@@ -15,17 +15,26 @@ export const TaskCard = ({ task, onDelete, onEdit }) => {
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1
+    opacity: isDragging ? 0.3 : 1,
+    cursor: isDragging ? 'grabbing' : 'default'
   };
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow"
+      {...attributes}
+      {...listeners}
+      className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow cursor-grab active:cursor-grabbing"
     >
       <div className="flex items-start justify-between gap-2">
-        <div className="flex-1 cursor-pointer" onClick={() => onEdit(task)}>
+        <div 
+          className="flex-1 cursor-pointer" 
+          onClick={(e) => {
+            e.stopPropagation();
+            onEdit(task);
+          }}
+        >
           <h3 className="font-medium text-gray-900 dark:text-white mb-1">
             {task.title}
           </h3>
@@ -40,15 +49,11 @@ export const TaskCard = ({ task, onDelete, onEdit }) => {
         </div>
         <div className="flex items-center gap-1">
           <button
-            {...attributes}
-            {...listeners}
-            className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 cursor-grab active:cursor-grabbing"
-          >
-            <GripVertical size={18} />
-          </button>
-          <button
-            onClick={() => onDelete(task._id)}
-            className="p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(task._id);
+            }}
+            className="p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400 cursor-pointer"
           >
             <Trash2 size={16} />
           </button>
