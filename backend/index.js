@@ -114,7 +114,7 @@ httpServer.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
 
-const BACKEND_URL = 'https://trelis-backend-6q6y.onrender.com/';
+const BACKEND_URL = process.env.BACKEND_URL || 'https://trelis-backend-6q6y.onrender.com/';
 
 const sendRequest = async () => {
   try {
