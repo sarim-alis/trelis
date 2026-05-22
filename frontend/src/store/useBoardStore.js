@@ -67,10 +67,16 @@ export const useBoardStore = create((set, get) => ({
   },
 
   updateTask: async (id, data) => {
-    const response = await api.put(`/tasks/${id}`, data);
-    set({
-      tasks: get().tasks.map(t => t._id === id ? response.data.task : t)
-    });
+    try {
+      const response = await api.put(`/tasks/${id}`, data);
+      set({
+        tasks: get().tasks.map(t => t._id === id ? response.data.task : t)
+      });
+      return response.data.task;
+    } catch (error) {
+      console.error('Failed to update task:', error.response?.data || error.message);
+      throw error;
+    }
   },
 
   deleteTask: async (id) => {
@@ -79,11 +85,16 @@ export const useBoardStore = create((set, get) => ({
   },
 
   reorderTasks: async (boardId, tasks) => {
-    await api.put(`/tasks/board/${boardId}/reorder`, { tasks });
-    set({ tasks: get().tasks.map(t => {
-      const updated = tasks.find(ut => ut.id === t._id);
-      return updated ? { ...t, status: updated.status, order: updated.order } : t;
-    })});
+    try {
+      await api.put(`/tasks/board/${boardId}/reorder`, { tasks });
+      set({ tasks: get().tasks.map(t => {
+        const updated = tasks.find(ut => ut.id === t._id);
+        return updated ? { ...t, status: updated.status, order: updated.order } : t;
+      })});
+    } catch (error) {
+      console.error('Failed to reorder tasks:', error.response?.data || error.message);
+      throw error;
+    }
   },
 
   fetchActivities: async (boardId) => {

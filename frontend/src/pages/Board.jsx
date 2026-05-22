@@ -58,27 +58,6 @@ export const Board = () => {
   const handleDragOver = (event) => {
     const { active, over } = event;
     if (!over) return;
-
-    const activeTask = tasks.find(t => t._id === active.id);
-    if (!activeTask) return;
-
-    const overId = over.id;
-    const overTask = tasks.find(t => t._id === overId);
-    
-    let newStatus = activeTask.status;
-    
-    if (['todo', 'inprogress', 'done'].includes(overId)) {
-      newStatus = overId;
-    } else if (overTask) {
-      newStatus = overTask.status;
-    }
-
-    if (activeTask.status !== newStatus) {
-      const updatedTasks = tasks.map(t => 
-        t._id === active.id ? { ...t, status: newStatus } : t
-      );
-      useBoardStore.setState({ tasks: updatedTasks });
-    }
   };
 
   const handleDragEnd = async (event) => {
@@ -102,21 +81,36 @@ export const Board = () => {
       }
     }
 
-    const statusTasks = tasks.filter(t => t.status === newStatus);
-    const oldIndex = statusTasks.findIndex(t => t._id === active.id);
-    const newIndex = statusTasks.findIndex(t => t._id === overId);
+    const statusChanged = activeTask.status !== newStatus;
+    
+    if (!statusChanged && active.id === overId) {
+      return;
+    }
 
-    if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-      const reordered = arrayMove(statusTasks, oldIndex, newIndex);
-      const updatedTasks = reordered.map((task, index) => ({
-        id: task._id,
-        status: newStatus,
-        order: index
-      }));
-      
-      await reorderTasks(id, updatedTasks);
-    } else if (activeTask.status !== newStatus) {
-      await updateTask(active.id, { status: newStatus });
+    try {
+      if (statusChanged) {
+        await updateTask(active.id, { status: newStatus });
+        await fetchTasks(id);
+      } else {
+        const statusTasks = tasks.filter(t => t.status === newStatus);
+        const oldIndex = statusTasks.findIndex(t => t._id === active.id);
+        const newIndex = statusTasks.findIndex(t => t._id === overId);
+
+        if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+          const reordered = arrayMove(statusTasks, oldIndex, newIndex);
+          const updatedTasks = reordered.map((task, index) => ({
+            id: task._id,
+            status: newStatus,
+            order: index
+          }));
+          
+          await reorderTasks(id, updatedTasks);
+          await fetchTasks(id);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to update task position:', error);
+      await fetchTasks(id);
     }
   };
 
