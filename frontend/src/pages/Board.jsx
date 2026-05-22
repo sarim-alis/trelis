@@ -126,10 +126,16 @@ export const Board = () => {
   };
 
   const handleTaskSubmit = async (data) => {
-    if (editingTask) {
-      await updateTask(editingTask._id, data);
-    } else {
-      await createTask(id, data.title, data.description, data.status);
+    try {
+      if (editingTask) {
+        await updateTask(editingTask._id, data);
+      } else {
+        await createTask(id, data.title, data.description, data.status);
+      }
+      setIsTaskModalOpen(false);
+      setEditingTask(null);
+    } catch (error) {
+      console.error('Failed to save task:', error);
     }
   };
 

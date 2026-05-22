@@ -23,7 +23,6 @@ export const TaskModal = ({ isOpen, onClose, onSubmit, task, defaultStatus }) =>
     if (!title.trim()) return;
 
     onSubmit({ title, description, status });
-    onClose();
   };
 
   return (
