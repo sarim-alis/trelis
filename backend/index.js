@@ -3,6 +3,8 @@ import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
+import axios from 'axios';
+import cron from 'node-cron';
 import { connectDB } from './config/db.js';
 import { verifyAccessToken } from './utils/jwt.js';
 import { rateLimiter } from './middleware/rateLimiter.js';
@@ -109,3 +111,21 @@ app.set('io', io);
 httpServer.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+
+const BACKEND_URL = 'https://trelis-backend-6q6y.onrender.com/';
+
+const sendRequest = async () => {
+  try {
+    const response = await axios.get(BACKEND_URL);
+    console.log(`Ping sent at ${new Date().toLocaleTimeString()}:`, response.status);
+  } catch (error) {
+    console.error(`Error pinging at ${new Date().toLocaleTimeString()}:`, error.message);
+  }
+};
+
+cron.schedule('*/5 * * * *', () => {
+  console.log(`Sending ping to ${BACKEND_URL}`);
+  sendRequest();
+});
+
+sendRequest();
