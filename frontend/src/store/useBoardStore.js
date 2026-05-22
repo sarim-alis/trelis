@@ -7,6 +7,7 @@ export const useBoardStore = create((set, get) => ({
   tasks: [],
   activities: [],
   isLoading: false,
+  createdTaskIds: new Set(),
 
   fetchBoards: async () => {
     set({ isLoading: true });
@@ -62,8 +63,10 @@ export const useBoardStore = create((set, get) => ({
 
   createTask: async (boardId, title, description, status = 'todo') => {
     const response = await api.post('/tasks', { boardId, title, description, status });
-    set({ tasks: [...get().tasks, response.data.task] });
-    return response.data.task;
+    const task = response.data.task;
+    get().createdTaskIds.add(task._id);
+    set({ tasks: [...get().tasks, task] });
+    return task;
   },
 
   updateTask: async (id, data) => {
@@ -107,6 +110,10 @@ export const useBoardStore = create((set, get) => ({
   },
 
   addTask: (task) => {
+    if (get().createdTaskIds.has(task._id)) {
+      get().createdTaskIds.delete(task._id);
+      return;
+    }
     const exists = get().tasks.find(t => t._id === task._id);
     if (!exists) {
       set({ tasks: [...get().tasks, task] });
